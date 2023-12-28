@@ -43,27 +43,41 @@ const industryList = [
   "Veterinary",
 ];
 
-const dropdown = $("#industryDropdown");
+const experienceLevels = ["Entry", "Mid", "Senior", "Management", "Internship"];
+
+const dropdown1 = $("#industryDropdown");
 
 industryList.forEach((industry) => {
   const optionEl = $("<option>");
   optionEl.val(industry);
   optionEl.text(industry);
-  dropdown.append(optionEl);
+  dropdown1.append(optionEl);
+});
+
+const dropdown2 = $("#experienceDropdown");
+
+experienceLevels.forEach((level) => {
+  const optionEl = $("<option>");
+  optionEl.val(level);
+  optionEl.text(level);
+  dropdown2.append(optionEl);
 });
 
 $(document).ready(() => {
   $("#search-submit").click((e) => {
     e.preventDefault();
     const selectedCity = $("#city").val();
-    const selectedIndustry = $("#industryDropdown").val(); // Corrected here
-    getJobs(selectedCity, selectedIndustry); // Updated argument name
+    const selectedIndustry = $("#industryDropdown").val();
+    const selectedLevel = $("#experienceDropdown").val();
+    getJobs(selectedCity, selectedIndustry, selectedLevel);
   });
 });
 
-function getJobs(city, industry) {
+function getJobs(city, industry, level) {
   // Updated parameter name here as well
-  const queryURL = `https://www.themuse.com/api/public/jobs?location=${city}%2C%20United%20Kingdom&industry=${industry}&page=1&descending=true`;
+  const queryURL = `https://www.themuse.com/api/public/jobs?location=${city}%2C%20United%20Kingdom&level=${
+    level + "%20Level"
+  }&industry=${industry}&page=1&descending=true`;
 
   fetch(queryURL)
     .then(function (response) {
