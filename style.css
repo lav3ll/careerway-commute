@@ -1,0 +1,21 @@
+/* Import font from Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Montserrat&display=swap");
+
+/*Create global color variables*/
+:root {
+  --primary: #001f3f;
+  --nav-primary: #0000ee;
+  --secondary: #ff6663;
+  --secondary-text: #eec170;
+  --base-color: #f5f5f5;
+  --white: #fff;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  line-height: 1.5;
+  color: var(--primary) !important;
+  font-family: "Montserrat", sans-serif !important;
+  background-color: var(--base-color) !important;
+}
