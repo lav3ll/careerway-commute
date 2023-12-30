@@ -132,3 +132,39 @@ function showJobs(companies) {
     companyContainerEl.append(companyEl);
   });
 }
+
+/////////////////////////////////// SIGN IN //////////////////////////
+// Function to handle the sign-in process
+function signIn() {
+  // Retrieving the entered email and password values from the input fields
+  const emailEl = $("#signin-email").val();
+  const password = $("#signin-password").val();
+
+  // Checking if provided email and password match any set of credentials
+  const found = credentials.some(
+    (cred) => cred.email === emailEl && cred.password === password
+  );
+
+  // Checking if the credentials are found and logging the result
+  if (found) {
+    console.log("Login successful");
+  } else {
+    console.log("Account does not exist");
+  }
+}
+
+// Binding the signIn function to the click event of the sign-in button
+const signInEl = $("#signin");
+signInEl.click(signIn);
+
+// Array containing sets of email and password credentials
+const credentials = [
+  {
+    email: "test1@gmail.com",
+    password: "password123",
+  },
+  {
+    email: "tes2@google.com",
+    password: "securePass",
+  },
+];
