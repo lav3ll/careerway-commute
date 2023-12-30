@@ -19,3 +19,11 @@ body {
   font-family: "Montserrat", sans-serif !important;
   background-color: var(--base-color) !important;
 }
+
+.border {
+  border: 5px solid #6c757d !important;
+}
+
+.saved-info {
+  padding-top: 1em;
+}
