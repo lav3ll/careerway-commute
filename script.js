@@ -52,13 +52,20 @@ function showJobs(companies) {
     const position = $("<p>").text(company.title);
     const publishDate = $("<p>").text(`Published ${company.created}`);
 
+    const cardFooter = $("<div>");
     // Creating a link element to the company's landing page
     const link = $("<a>")
       .text(`${company.company.display_name} website`)
-      .attr("href", company.redirect_url); // Assuming company.refs has the landing page URL
+      .attr("href", company.redirect_url);
+    link.addClass("col-3");
+    const mapBtn = $("<button>").text("Commute");
+    mapBtn.addClass("commute-btn btn btn-primary ms-5");
+    const saveBtn = $("<button>").text("Save");
+    saveBtn.addClass("save-btn btn btn-primary");
+    cardFooter.append(link, mapBtn, saveBtn);
 
     // Appending company information elements to the company element
-    companyEl.append(companyName, position, publishDate, link);
+    companyEl.append(companyName, position, publishDate, cardFooter);
 
     // Appending the company element to the container element
     companyContainerEl.append(companyEl);
@@ -137,3 +144,15 @@ function signUp() {
 
 // Call signUp function
 signUp();
+
+/////////////////////////////////// Commute Button //////////////////////////
+// Delegate the commute btn click function through parent element
+$("#company-container").on("click", ".commute-btn", () => {
+  console.log("Commute button clicked");
+});
+
+/////////////////////////////////// Save Button //////////////////////////
+// Delegate the save btn click function through parent element
+$("#company-container").on("click", ".save-btn", () => {
+  console.log("Save button clicked");
+});
