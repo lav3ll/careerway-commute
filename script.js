@@ -1,8 +1,11 @@
 const apID = "35a50561";
 const apiKey = "5464348b76ae95a0b90aa68d7acc6aae";
+let isLoggedIn = false;
 
 // Event listner for submit button
 $(document).ready(() => {
+  // Call the function to populate saved job information when the page loads
+  populateSavedJobs();
   $("#search-submit").click((e) => {
     e.preventDefault();
     const selectedCity = $("#city").val();
@@ -58,9 +61,47 @@ function showJobs(companies) {
       .text(`${company.company.display_name} website`)
       .attr("href", company.redirect_url);
     link.addClass("col-3");
-    const mapBtn = $("<button>").text("Commute");
-    mapBtn.addClass("commute-btn btn btn-primary ms-5");
-    const saveBtn = $("<button>").text("Save");
+
+    const mapBtn = $("<button>").text("Commute").attr({
+      type: "button",
+      class: "commute-btn btn btn-primary ms-5",
+      id: "commute-btn",
+      "data-bs-toggle": "modal",
+      "data-bs-target": "#commute-modal",
+    });
+    const saveBtn = $("<button>").text("Save").attr({
+      type: "button",
+      class: "commute-btn btn btn-primary ms-5",
+      id: "save-btn",
+      "data-bs-toggle": "modal",
+      "data-bs-target": "#save-modal",
+    });
+
+    const openSaveModal = $("<div>").html(`
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                ${
+                  isLoggedIn
+                    ? "<p>Jobs saved</p>"
+                    : "<p>Log in to saved jobs</p>"
+                }
+            </div>
+        </div>
+    </div>`);
+
+    openSaveModal.attr({
+      class: "modal fade",
+      id: "save-modal",
+      "data-bs-backdrop": "static",
+      "data-bs-keyboard": "false",
+      tabindex: "-1",
+      "aria-labelledby": "save-modalLabel",
+      "aria-hidden": "true",
+    });
+
+    $(".bottom").append(openSaveModal);
+
     saveBtn.addClass("save-btn btn btn-primary");
     cardFooter.append(link, mapBtn, saveBtn);
 
@@ -70,6 +111,57 @@ function showJobs(companies) {
     // Appending the company element to the container element
     companyContainerEl.append(companyEl);
   });
+}
+
+/////////////////////////////////// SAVE TO LOCAL STORAGE //////////////////////////
+// Function to save job information to local storage
+function saveToLocalStorage(job) {
+  // Retrieve existing saved jobs or initialize an empty array
+  let savedJobs = JSON.parse(localStorage.getItem("savedJobs"));
+  if (!Array.isArray(savedJobs)) {
+    savedJobs = [];
+  }
+
+  // Add the new job to the existing saved jobs
+  savedJobs.push(job);
+
+  // Save the updated list back to local storage
+  localStorage.setItem("savedJobs", JSON.stringify(savedJobs));
+}
+
+// Delegate the save btn click function through parent element
+$("#company-container").on("click", ".save-btn", (e) => {
+  setTimeout(function () {
+    // Close the save modal after 3 seconds
+    $("#save-modal").modal("hide");
+  }, 800);
+
+  // Find the closest parent element with class "card"
+  const closestCard = $(e.currentTarget).closest(".card");
+
+  // Remove the save button from the original element
+  closestCard.find(".save-btn").remove();
+
+  // Get the HTML content of the modified element
+  const jobToSave = closestCard.html();
+
+  saveToLocalStorage(jobToSave);
+  populateSavedJobs();
+});
+
+// Function to populate saved job information into element with class "saved-info"
+function populateSavedJobs() {
+  const savedInfoElement = $(".saved-info");
+  const savedJobs = JSON.parse(localStorage.getItem("savedJobs"));
+  if (Array.isArray(savedJobs)) {
+    savedInfoElement.empty();
+    savedJobs.forEach((job) => {
+      // Create a div for each job and append it to the saved-info element
+      savedInfoElement.append($("<div>").html(job));
+    });
+  } else {
+    savedInfoElement.text("No saved jobs found");
+  }
 }
 
 /////////////////////////////////// SIGN IN //////////////////////////
@@ -149,10 +241,4 @@ signUp();
 // Delegate the commute btn click function through parent element
 $("#company-container").on("click", ".commute-btn", () => {
   console.log("Commute button clicked");
-});
-
-/////////////////////////////////// Save Button //////////////////////////
-// Delegate the save btn click function through parent element
-$("#company-container").on("click", ".save-btn", () => {
-  console.log("Save button clicked");
 });
