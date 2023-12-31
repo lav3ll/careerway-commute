@@ -1,97 +1,29 @@
-// Array holding list of different industries
-const industryList = [
-  "Accounting",
-  "Advertising and Agencies",
-  "Architecture",
-  "Arts & Music",
-  "Biotechnology",
-  "Blockchain",
-  "Client Services",
-  "Consulting",
-  "Consumer Goods & Services",
-  "Data Science",
-  "Education",
-  "Energy",
-  "Engineering",
-  "Entertainment & Gaming",
-  "Fashion & Beauty",
-  "Financial Services",
-  "Fintech",
-  "Fitness & Wellness",
-  "Food & Beverage",
-  "Government",
-  "Healthcare",
-  "Healthtech",
-  "Information Technology",
-  "Insurance",
-  "Law",
-  "Manufacturing",
-  "Marketing",
-  "Media",
-  "Mortgage",
-  "Non-Profit",
-  "Pharmaceutical",
-  "Public Relations & Communications",
-  "Real Estate & Construction",
-  "Retail",
-  "Social Good",
-  "Social Media",
-  "Software",
-  "Technology",
-  "Telecom",
-  "Trading",
-  "Travel and Hospitality",
-  "Veterinary",
-];
-
-// Array holding list of differente experience levels
-const experienceLevels = ["Entry", "Mid", "Senior", "Management", "Internship"];
-
-const dropdown1 = $("#industryDropdown");
-
-// Populate html form list with data from array
-industryList.forEach((industry) => {
-  const optionEl = $("<option>");
-  optionEl.val(industry);
-  optionEl.text(industry);
-  dropdown1.append(optionEl);
-});
-
-const dropdown2 = $("#experienceDropdown");
-
-// Populate html form list with data from array
-experienceLevels.forEach((level) => {
-  const optionEl = $("<option>");
-  optionEl.val(level);
-  optionEl.text(level);
-  dropdown2.append(optionEl);
-});
+const apID = "35a50561";
+const apiKey = "5464348b76ae95a0b90aa68d7acc6aae";
 
 // Event listner for submit button
 $(document).ready(() => {
   $("#search-submit").click((e) => {
     e.preventDefault();
     const selectedCity = $("#city").val();
-    const selectedIndustry = $("#industryDropdown").val();
+    const searchQueryEl = $("#search-query").val();
     const selectedLevel = $("#experienceDropdown").val();
-    getJobs(selectedCity, selectedIndustry, selectedLevel);
+    getJobs(selectedCity, searchQueryEl, selectedLevel);
   });
 });
 
-function getJobs(city, industry, level) {
+function getJobs(city, searchQuery, level) {
   // Updated parameter name here as well
-  const queryURL = `https://www.themuse.com/api/public/jobs?location=${city}%2C%20United%20Kingdom&level=${
-    level + "%20Level"
-  }&industry=${industry}&page=1&descending=false`;
 
+  const queryURL = `http://api.adzuna.com:80/v1/api/jobs/gb/search/1?app_id=${apID}&app_key=${apiKey}&results_per_page=10&what=${searchQuery}&where=${city}&content-type=application/json`;
   fetch(queryURL)
     .then(function (response) {
       return response.json();
     })
     .then(function (data) {
       //   console.log(queryURL);
-      console.log(data.results);
       showJobs(data.results);
+      console.log(data.results, "test");
     })
     .catch(console.error);
 }
@@ -116,14 +48,14 @@ function showJobs(companies) {
     companyEl.addClass("card col-6");
 
     // Creating elements to display company name, job position, and publication date
-    const companyName = $("<h5>").text(company.company.name);
-    const position = $("<p>").text(company.name);
-    const publishDate = $("<p>").text(`Published ${company.publication_date}`);
+    const companyName = $("<h5>").text(company.company.display_name);
+    const position = $("<p>").text(company.title);
+    const publishDate = $("<p>").text(`Published ${company.created}`);
 
     // Creating a link element to the company's landing page
     const link = $("<a>")
-      .text(`${company.company.name} website`)
-      .attr("href", company.refs.landing_page); // Assuming company.refs has the landing page URL
+      .text(`${company.company.display_name} website`)
+      .attr("href", company.redirect_url); // Assuming company.refs has the landing page URL
 
     // Appending company information elements to the company element
     companyEl.append(companyName, position, publishDate, link);
@@ -168,3 +100,40 @@ const credentials = [
     password: "securePass",
   },
 ];
+
+/////////////////////////////////// REGISTER //////////////////////////
+
+function signUp() {
+  // Function to handle the register process
+  function signup() {
+    // Retrieving the entered email and password values from the input fields
+    const emailEl = $("#register-email").val();
+    const password1 = $("#password1").val();
+    const password2 = $("#password2").val();
+
+    // Checking if the passwords match
+    const passwordsMatch = password1 === password2;
+
+    // Checking if the provided email is unique (not already in credentials)
+    const emailExists = credentials.some((cred) => cred.email === emailEl);
+
+    // Checking if the email is unique and passwords match
+    if (!emailExists && passwordsMatch) {
+      console.log("You have now signed up to CareerWay Commut");
+      console.log(credentials);
+      // Add the new user to the credentials array
+      credentials.push({ email: emailEl, password: password1 });
+    } else if (!passwordsMatch) {
+      console.log("passwords do not match!");
+    } else {
+      console.log("Please enter a valid email address and matching passwords");
+    }
+  }
+
+  // Binding the signup function to the click event of the sign-up button
+  const signUpEl = $("#signup");
+  signUpEl.click(signup);
+}
+
+// Call signUp function
+signUp();
