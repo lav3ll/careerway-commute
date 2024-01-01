@@ -58,6 +58,23 @@ function showJobs(companies) {
     const publishDate = $("<p>").text(
       `Published ${extractDate(company.created)}`
     );
+    const salaryMinFormatted = company.salary_min.toLocaleString("en-GB", {
+      style: "currency",
+      currency: "GBP",
+    });
+    const salaryMaxFormatted = company.salary_max.toLocaleString("en-GB", {
+      style: "currency",
+      currency: "GBP",
+    });
+
+    const salary = $("<p>").text(
+      company.salary_min === company.salary_max
+        ? salaryMinFormatted.slice(0, -3)
+        : `${salaryMinFormatted.slice(0, -3)} - ${salaryMaxFormatted.slice(
+            0,
+            -3
+          )}`
+    );
 
     const cardFooter = $("<div>");
     // Creating a link element to the company's landing page
@@ -110,7 +127,7 @@ function showJobs(companies) {
     cardFooter.append(link, mapBtn, saveBtn);
 
     // Appending company information elements to the company element
-    companyEl.append(companyName, position, publishDate, cardFooter);
+    companyEl.append(companyName, position, publishDate, salary, cardFooter);
 
     // Appending the company element to the container element
     companyContainerEl.append(companyEl);
