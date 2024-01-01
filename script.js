@@ -71,7 +71,7 @@ function showJobs(companies) {
     });
     const saveBtn = $("<button>").text("Save").attr({
       type: "button",
-      class: "commute-btn btn btn-primary ms-5",
+      class: "save-btn btn btn-primary ms-5",
       id: "save-btn",
       "data-bs-toggle": "modal",
       "data-bs-target": "#save-modal",
@@ -155,15 +155,39 @@ function populateSavedJobs() {
   const savedJobs = JSON.parse(localStorage.getItem("savedJobs"));
   if (Array.isArray(savedJobs)) {
     savedInfoElement.empty();
-    savedJobs.forEach((job) => {
-      // Create a div for each job and append it to the saved-info element
-      savedInfoElement.append($("<div>").html(job));
+    savedJobs.forEach((job, index) => {
+      const jobDiv = $("<div>").html(job);
+      const commuteBtn = jobDiv.find(".commute-btn");
+
+      // Create a delete button for each job
+      const deleteButton = $("<button>")
+        .text("Delete")
+        .addClass("delete-btn btn btn-danger ms-3")
+        .attr("data-index", index); // Add an index attribute to identify the job to delete
+
+      // Insert the delete button next to the commute button
+      commuteBtn.after(deleteButton);
+
+      savedInfoElement.append(jobDiv);
     });
   } else {
     savedInfoElement.text("No saved jobs found");
   }
 }
 
+// Delegate the delete-btn click function through parent element
+$(".saved-info").on("click", ".delete-btn", (e) => {
+  const indexToDelete = $(e.currentTarget).data("index");
+
+  let savedJobs = JSON.parse(localStorage.getItem("savedJobs"));
+
+  if (Array.isArray(savedJobs)) {
+    savedJobs.splice(indexToDelete, 1); // Remove the job at the specified index
+
+    localStorage.setItem("savedJobs", JSON.stringify(savedJobs));
+    populateSavedJobs(); // Reload the UI after deleting the job
+  }
+});
 /////////////////////////////////// SIGN IN //////////////////////////
 // Function to handle the sign-in process
 function signIn() {
