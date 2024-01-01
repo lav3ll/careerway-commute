@@ -15,7 +15,7 @@ $(document).ready(() => {
   });
 });
 
-function getJobs(city, searchQuery, level) {
+function getJobs(city, searchQuery) {
   // Updated parameter name here as well
 
   const queryURL = `http://api.adzuna.com:80/v1/api/jobs/gb/search/1?app_id=${apID}&app_key=${apiKey}&results_per_page=10&what=${searchQuery}&where=${city}&content-type=application/json`;
@@ -26,6 +26,8 @@ function getJobs(city, searchQuery, level) {
     .then(function (data) {
       //   console.log(queryURL);
       showJobs(data.results);
+      saveRecentSearch(searchQuery, data.results.slice(0, 3)); // Save only the first three results
+      showRecentJobs();
       console.log(data.results, "test");
     })
     .catch(console.error);
@@ -51,9 +53,11 @@ function showJobs(companies) {
     companyEl.addClass("card col-6");
 
     // Creating elements to display company name, job position, and publication date
-    const companyName = $("<h5>").text(company.company.display_name);
-    const position = $("<p>").text(company.title);
-    const publishDate = $("<p>").text(`Published ${company.created}`);
+    const companyName = $("<h5>").text(`${company.company.display_name}`);
+    const position = $("<p>").text(`Position: ${company.title}`);
+    const publishDate = $("<p>").text(
+      `Published ${extractDate(company.created)}`
+    );
 
     const cardFooter = $("<div>");
     // Creating a link element to the company's landing page
@@ -71,7 +75,7 @@ function showJobs(companies) {
     });
     const saveBtn = $("<button>").text("Save").attr({
       type: "button",
-      class: "save-btn btn btn-primary ms-5",
+      class: "save-btn btn btn-primary ms-1",
       id: "save-btn",
       "data-bs-toggle": "modal",
       "data-bs-target": "#save-modal",
@@ -111,6 +115,13 @@ function showJobs(companies) {
     // Appending the company element to the container element
     companyContainerEl.append(companyEl);
   });
+}
+
+// Function to extract date from timestamp
+function extractDate(timestamp) {
+  const dateObj = new Date(timestamp);
+  const formattedDate = dateObj.toISOString().split("T")[0]; // Extracting date part
+  return formattedDate;
 }
 
 /////////////////////////////////// SAVE TO LOCAL STORAGE //////////////////////////
@@ -188,6 +199,65 @@ $(".saved-info").on("click", ".delete-btn", (e) => {
     populateSavedJobs(); // Reload the UI after deleting the job
   }
 });
+
+//////////////////////////////////// RECENT SEARCH ////////////////////
+
+let recentSearches = [];
+
+function saveRecentSearch(searchQuery, results) {
+  recentSearches.unshift({ searchQuery, results }); // Add recent search to the beginning of the array
+  if (recentSearches.length > 4) {
+    recentSearches.pop(); // Keep only the last four searches
+  }
+}
+
+function showRecentJobs() {
+  const recentInfoEl = $(".recent-info");
+  recentInfoEl.empty(); // Clear recent info before populating new data
+
+  recentSearches.forEach((search) => {
+    const searchDiv = $("<div>").addClass("search-info");
+    const searchHeader = $("<h6>").text(`Recent Search: ${search.searchQuery}`);
+    const searchResults = $("<div>").addClass("search-results");
+
+    search.results.forEach((result) => {
+      const resultEl = $("<div>").addClass("card");
+      const companyName = $("<h5>").text(result.company.display_name);
+      const position = $("<p>").text(result.title);
+      const publishDate = $("<p>").text(
+        `Published: ${extractDate(result.created)}`
+      );
+      const cardFooter = $("<div>");
+      const link = $("<a>")
+        .text(`${result.company.display_name} website`)
+        .attr("href", result.redirect_url)
+        .addClass("col-3");
+      const mapBtn = $("<button>").text("Commute").attr({
+        type: "button",
+        class: "commute-btn btn btn-primary ms-5",
+        id: "commute-btn",
+        "data-bs-toggle": "modal",
+        "data-bs-target": "#commute-modal",
+      });
+      const saveBtn = $("<button>").text("Save").attr({
+        type: "button",
+        class: "save-btn btn btn-primary ms-1",
+        id: "save-btn",
+        "data-bs-toggle": "modal",
+        "data-bs-target": "#save-modal",
+      });
+
+      saveBtn.addClass("save-btn btn btn-primary");
+      cardFooter.append(link, mapBtn, saveBtn);
+
+      resultEl.append(companyName, position, publishDate, cardFooter);
+      searchResults.append(resultEl);
+    });
+
+    searchDiv.append(searchHeader, searchResults);
+    recentInfoEl.append(searchDiv);
+  });
+}
 /////////////////////////////////// SIGN IN //////////////////////////
 // Function to handle the sign-in process
 function signIn() {
