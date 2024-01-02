@@ -50,13 +50,14 @@ function showJobs(companies) {
     const companyEl = $("<div>");
 
     // Adding the 'card' and 'col-6' classes to style the company element
-    companyEl.addClass("card col-6");
+    companyEl.addClass("card col-3 mb-4");
 
     // Creating elements to display company name, job position, and publication date
     const companyName = $("<h5>").text(`${company.company.display_name}`);
+    companyName.addClass("mx-auto mt-2");
     const position = $("<p>").text(`Position: ${company.title}`);
     const publishDate = $("<p>").text(
-      `Published ${extractDate(company.created)}`
+      `Published: ${extractDate(company.created)}`
     );
     const salaryMinFormatted = company.salary_min.toLocaleString("en-GB", {
       style: "currency",
@@ -69,14 +70,17 @@ function showJobs(companies) {
 
     const salary = $("<p>").text(
       company.salary_min === company.salary_max
-        ? salaryMinFormatted.slice(0, -3)
-        : `${salaryMinFormatted.slice(0, -3)} - ${salaryMaxFormatted.slice(
+        ? `Salary: ${salaryMinFormatted.slice(0, -3)}`
+        : `Salary: ${salaryMinFormatted.slice(
             0,
             -3
-          )}`
+          )} - ${salaryMaxFormatted.slice(0, -3)}`
     );
 
+    const description = $("<p>").text(company.description);
+
     const cardFooter = $("<div>");
+    cardFooter.addClass("mx-auto");
     // Creating a link element to the company's landing page
     const link = $("<a>")
       .text(`${company.company.display_name} website`)
@@ -127,7 +131,14 @@ function showJobs(companies) {
     cardFooter.append(link, mapBtn, saveBtn);
 
     // Appending company information elements to the company element
-    companyEl.append(companyName, position, publishDate, salary, cardFooter);
+    companyEl.append(
+      companyName,
+      position,
+      publishDate,
+      salary,
+      description,
+      cardFooter
+    );
 
     // Appending the company element to the container element
     companyContainerEl.append(companyEl);
@@ -158,11 +169,16 @@ function saveToLocalStorage(job) {
 }
 
 // Delegate the save btn click function through parent element
-$("#company-container").on("click", ".save-btn", (e) => {
+
+jobsSavedTimer = function () {
   setTimeout(function () {
     // Close the save modal after 3 seconds
     $("#save-modal").modal("hide");
   }, 800);
+};
+
+$("#company-container").on("click", ".save-btn", (e) => {
+  jobsSavedTimer();
 
   // Find the closest parent element with class "card"
   const closestCard = $(e.currentTarget).closest(".card");
@@ -265,6 +281,7 @@ function showRecentJobs() {
       });
 
       saveBtn.addClass("save-btn btn btn-primary");
+      saveBtn.on("click", jobsSavedTimer);
       cardFooter.append(link, mapBtn, saveBtn);
 
       resultEl.append(companyName, position, publishDate, cardFooter);
