@@ -11,9 +11,17 @@
   --white: #fff;
 }
 
-body {
+html,
+body,
+#map-modal-dialog,
+#map-modal-content,
+#map-modal-body {
+  height: 100%;
   margin: 0;
   padding: 0;
+}
+
+body {
   line-height: 1.5;
   color: var(--primary) !important;
   font-family: "Montserrat", sans-serif !important;
@@ -26,4 +34,47 @@ body {
 
 .saved-info {
   padding-top: 1em;
+}
+
+/*Google Maps Api*/
+
+.custom-map-control-button {
+  background-color: #fff !important;
+  border: 0 !important;
+  border-radius: 2px !important;
+  box-shadow: 0 1px 4px -1px rgba(0, 0, 0, 0.3) !important;
+  margin: 10px !important;
+  padding: 0 0.5em !important;
+  font: 400 18px Roboto, Arial, sans-serif !important;
+  overflow: hidden !important;
+  height: 40px !important;
+  cursor: pointer !important;
+}
+.custom-map-control-button:hover {
+  background: rgb(235, 235, 235) !important;
+}
+
+/**
+ * @license
+ * Copyright 2019 Google LLC. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+/* 
+ * Always set the map height explicitly to define the size of the div element
+ * that contains the map. 
+ */
+#map {
+  height: 50%;
+  width: 100%;
+}
+
+#map-modal-body {
+  overflow-y: hidden !important;
+}
+
+/* 
+   * Optional: Makes the sample page fill the window. 
+   */
+.hidden {
+  display: none;
 }

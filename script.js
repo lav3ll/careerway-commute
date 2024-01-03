@@ -83,7 +83,7 @@ function showJobs(companies) {
     cardFooter.addClass("mx-auto");
     // Creating a link element to the company's landing page
     const link = $("<a>")
-      .text(`${company.company.display_name} website`)
+      .text(`Full Job Advert`)
       .attr("href", company.redirect_url);
     link.addClass("col-3");
 
@@ -93,6 +93,9 @@ function showJobs(companies) {
       id: "commute-btn",
       "data-bs-toggle": "modal",
       "data-bs-target": "#commute-modal",
+    });
+    mapBtn.on("click", () => {
+      showMap(company.latitude, company.longitude);
     });
     const saveBtn = $("<button>").text("Save").attr({
       type: "button",
@@ -370,3 +373,36 @@ signUp();
 $("#company-container").on("click", ".commute-btn", () => {
   console.log("Commute button clicked");
 });
+
+//////////////////////////////////Google Maps Api //////////////////////////
+let map;
+
+async function initMap(latVal, lngVal) {
+  console.log(latVal, lngVal);
+  // The location of Uluru
+  const position = { lat: latVal, lng: lngVal };
+  // Request needed libraries.
+  //@ts-ignore
+  const { Map } = await google.maps.importLibrary("maps");
+  const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+
+  // The map, centered at Uluru
+  map = new Map(document.getElementById("map"), {
+    zoom: 4,
+    center: position,
+    mapId: "DEMO_MAP_ID",
+  });
+
+  // The marker, positioned at Uluru
+  const marker = new AdvancedMarkerElement({
+    map: map,
+    position: position,
+    title: "Uluru",
+  });
+}
+
+/////////////////// Show Map///////////////////////////////
+function showMap(lat, lng) {
+  $("#map").show();
+  initMap(lat, lng);
+}
