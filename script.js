@@ -445,21 +445,55 @@ function calculateAndDisplayRoute(startLat, startLng, destLat, destLng) {
   const start = new google.maps.LatLng(startLat, startLng);
   const destination = new google.maps.LatLng(destLat, destLng);
 
-  const request = {
+  // Request for walking mode
+  const walkingRequest = {
+    origin: start,
+    destination: destination,
+    travelMode: google.maps.TravelMode.WALKING,
+  };
+
+  // Request for driving mode
+  const drivingRequest = {
     origin: start,
     destination: destination,
     travelMode: google.maps.TravelMode.DRIVING,
   };
 
-  directionsService.route(request, function (result, status) {
-    if (status === google.maps.DirectionsStatus.OK) {
-      directionsRenderer.setDirections(result);
-    } else {
-      console.error("Directions request failed due to " + status);
+  // Directions service for walking mode
+  directionsService.route(
+    walkingRequest,
+    function (walkingResult, walkingStatus) {
+      if (walkingStatus === google.maps.DirectionsStatus.OK) {
+        directionsRenderer.setDirections(walkingResult);
+        const walkingRoute = walkingResult.routes[0];
+        const { duration, distance } = walkingRoute.legs[0];
+        console.log("Route duration (walking):", duration.text);
+        console.log("Route distance (walking):", distance.text);
+      } else {
+        console.error(
+          "Walking directions request failed due to " + walkingStatus
+        );
+      }
     }
-  });
-}
+  );
 
+  // Directions service for driving mode
+  directionsService.route(
+    drivingRequest,
+    function (drivingResult, drivingStatus) {
+      if (drivingStatus === google.maps.DirectionsStatus.OK) {
+        const drivingRoute = drivingResult.routes[0];
+        const { duration, distance } = drivingRoute.legs[0];
+        console.log("Route duration (driving):", duration.text);
+        console.log("Route distance (driving):", distance.text);
+      } else {
+        console.error(
+          "Driving directions request failed due to " + drivingStatus
+        );
+      }
+    }
+  );
+}
 /////////////////// Show Map///////////////////////////////
 function showMap(lat, lng) {
   $("#map").show();
