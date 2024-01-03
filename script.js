@@ -445,6 +445,12 @@ function calculateAndDisplayRoute(startLat, startLng, destLat, destLng) {
   const start = new google.maps.LatLng(startLat, startLng);
   const destination = new google.maps.LatLng(destLat, destLng);
 
+  // Clear previous route details
+  if ($(".walking-info") && $(".driving-info")) {
+    $(".walking-info").empty();
+    $(".driving-info").empty();
+  }
+
   // Request for walking mode
   const walkingRequest = {
     origin: start,
@@ -464,11 +470,21 @@ function calculateAndDisplayRoute(startLat, startLng, destLat, destLng) {
     walkingRequest,
     function (walkingResult, walkingStatus) {
       if (walkingStatus === google.maps.DirectionsStatus.OK) {
-        directionsRenderer.setDirections(walkingResult);
         const walkingRoute = walkingResult.routes[0];
         const { duration, distance } = walkingRoute.legs[0];
-        console.log("Route duration (walking):", duration.text);
-        console.log("Route distance (walking):", distance.text);
+        const walkingInfo = $("<p>").text(
+          `Walking route duration: ${duration.text}, distance: ${distance.text}`
+        );
+        walkingInfo.addClass("walking-info mx-auto");
+        $("#map-modal-body").append(walkingInfo);
+        // Display driving route on the map
+        const walkingRenderer = new google.maps.DirectionsRenderer({
+          map: map,
+          directions: walkingResult,
+          polylineOptions: {
+            strokeColor: "green", // Set the color of the walking route to green
+          },
+        });
       } else {
         console.error(
           "Walking directions request failed due to " + walkingStatus
@@ -484,8 +500,20 @@ function calculateAndDisplayRoute(startLat, startLng, destLat, destLng) {
       if (drivingStatus === google.maps.DirectionsStatus.OK) {
         const drivingRoute = drivingResult.routes[0];
         const { duration, distance } = drivingRoute.legs[0];
-        console.log("Route duration (driving):", duration.text);
-        console.log("Route distance (driving):", distance.text);
+        const drivingInfo = $("<p>").text(
+          `Driving route duration: ${duration.text}, distance: ${distance.text}`
+        );
+        drivingInfo.addClass("driving-info mx-auto");
+        $("#map-modal-body").append(drivingInfo);
+
+        // Display driving route on the map
+        const drivingRenderer = new google.maps.DirectionsRenderer({
+          map: map,
+          directions: drivingResult,
+          polylineOptions: {
+            strokeColor: "blue", // Set the color of the driving route to blue
+          },
+        });
       } else {
         console.error(
           "Driving directions request failed due to " + drivingStatus
