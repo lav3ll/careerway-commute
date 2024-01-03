@@ -24,7 +24,9 @@ function getJobs(city, searchQuery) {
       return response.json();
     })
     .then(function (data) {
-      //   console.log(queryURL);
+      const latitude = data.results[0].latitude;
+      const longitude = data.results[0].longitude;
+      showMap(latitude, longitude);
       showJobs(data.results);
       saveRecentSearch(searchQuery, data.results.slice(0, 3)); // Save only the first three results
       showRecentJobs();
@@ -216,6 +218,15 @@ function populateSavedJobs() {
       commuteBtn.after(deleteButton);
 
       savedInfoElement.append(jobDiv);
+      // Add event listener to the commute button in saved jobs
+      commuteBtn.on("click", () => {
+        const job = savedJobs[index];
+        const company = $(job);
+        const latitude = Number($(".latitude", company).text());
+        const longitude = Number($(".longitude", company).text());
+        console.log(longitude, latitude);
+        showMap(latitude, longitude);
+      });
     });
   } else {
     savedInfoElement.text("No saved jobs found");
@@ -376,28 +387,76 @@ $("#company-container").on("click", ".commute-btn", () => {
 
 //////////////////////////////////Google Maps Api //////////////////////////
 let map;
+let directionsService;
+let directionsRenderer;
 
 async function initMap(latVal, lngVal) {
   console.log(latVal, lngVal);
-  // The location of Uluru
   const position = { lat: latVal, lng: lngVal };
-  // Request needed libraries.
-  //@ts-ignore
   const { Map } = await google.maps.importLibrary("maps");
   const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
 
-  // The map, centered at Uluru
   map = new Map(document.getElementById("map"), {
     zoom: 4,
     center: position,
     mapId: "DEMO_MAP_ID",
   });
 
-  // The marker, positioned at Uluru
   const marker = new AdvancedMarkerElement({
     map: map,
     position: position,
-    title: "Uluru",
+    title: "Location from API",
+  });
+
+  directionsService = new google.maps.DirectionsService();
+  directionsRenderer = new google.maps.DirectionsRenderer();
+  directionsRenderer.setMap(map);
+
+  getLocationAndAddUserMarker(latVal, lngVal);
+}
+
+function getLocationAndAddUserMarker(latVal, lngVal) {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const userPosition = { lat, lng };
+
+        const userMarker = new google.maps.Marker({
+          position: userPosition,
+          map: map,
+          title: "Your Location",
+        });
+
+        // Calculate and display the route between user's location and initial location
+        calculateAndDisplayRoute(lat, lng, latVal, lngVal);
+      },
+      (error) => {
+        console.error("Error getting user's location:", error);
+      }
+    );
+  } else {
+    console.log("Geolocation is not supported by this browser.");
+  }
+}
+
+function calculateAndDisplayRoute(startLat, startLng, destLat, destLng) {
+  const start = new google.maps.LatLng(startLat, startLng);
+  const destination = new google.maps.LatLng(destLat, destLng);
+
+  const request = {
+    origin: start,
+    destination: destination,
+    travelMode: google.maps.TravelMode.DRIVING,
+  };
+
+  directionsService.route(request, function (result, status) {
+    if (status === google.maps.DirectionsStatus.OK) {
+      directionsRenderer.setDirections(result);
+    } else {
+      console.error("Directions request failed due to " + status);
+    }
   });
 }
 
@@ -406,3 +465,18 @@ function showMap(lat, lng) {
   $("#map").show();
   initMap(lat, lng);
 }
+
+////////////////////// Get Users Geo Location///////////////////
+function getLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(showPosition);
+  } else {
+    x.innerHTML = "Geolocation is not supported by this browser.";
+  }
+}
+
+function showPosition(position) {
+  return position.coords.latitude + position.coords.longitude;
+}
+
+getLocation();
