@@ -76,7 +76,7 @@ function showJobs(companies) {
   // Looping through each company in the provided array
   companies.forEach(async (company) => {
     // Logging the current company object to the console
-    console.log(company);
+    // console.log(company);
 
     // Creating a new div element to hold company information
     const companyEl = $("<div>");
@@ -361,6 +361,21 @@ $(".saved-info").on("click", ".delete-btn", (e) => {
 });
 
 //////////////////////////////////// RECENT SEARCH ////////////////////
+// Function to save map data to local storage
+function saveMapDataToLocalStorage(latitude, longitude) {
+  const mapData = { latitude, longitude };
+  localStorage.setItem("mapData", JSON.stringify(mapData));
+}
+
+// Function to initialize the map from local storage
+function initializeMapFromLocalStorage() {
+  const mapDataString = localStorage.getItem("mapData");
+  if (mapDataString) {
+    const mapData = JSON.parse(mapDataString);
+    const { latitude, longitude } = mapData;
+    showMap(latitude, longitude); // Reinitialize the map with the saved coordinates
+  }
+}
 
 let recentSearches = [];
 
@@ -493,19 +508,9 @@ function saveCredentialsToStorage(credentials) {
 // Call signUp function
 signUp();
 
-/////////////////////////////////// Commute Button //////////////////////////
-// Delegate the commute btn click function through parent element
-$("#company-container").on("click", ".commute-btn", () => {
-  console.log("Commute button clicked");
-});
-
 //////////////////////////////////Google Maps Api //////////////////////////
-let map;
-let directionsService;
-let directionsRenderer;
 
 async function initMap(latVal, lngVal) {
-  console.log(latVal, lngVal);
   const position = { lat: latVal, lng: lngVal };
   const { Map } = await google.maps.importLibrary("maps");
   const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
@@ -637,7 +642,11 @@ function calculateAndDisplayRoute(startLat, startLng, destLat, destLng) {
   );
 }
 /////////////////// Show Map///////////////////////////////
+
 function showMap(lat, lng) {
+  let map;
+  let directionsService;
+  let directionsRenderer;
   $("#map").show();
 
   if (
