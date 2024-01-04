@@ -11,6 +11,27 @@
   --white: #fff;
 }
 
+.bg-secondary {
+  background-color: var(--nav-primary) !important;
+}
+
+.navbar {
+  background-color: var(--primary);
+}
+
+.navbar-brand {
+  color: var(--secondary);
+}
+
+.card {
+  background-color: var(--base-color);
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--secondary);
+}
+
 html,
 body,
 #map-modal-dialog,
@@ -28,8 +49,18 @@ body {
   background-color: var(--base-color) !important;
 }
 
+.jumbo {
+  background-image: url("./images/landing-bg.jpg");
+  background-size: cover;
+}
+
+.bottom,
+.bg-info {
+  background-color: var(--primary) !important;
+}
+
 .border {
-  border: 5px solid #6c757d !important;
+  border: 5px solid var(--secondary) !important;
 }
 
 .saved-info {
@@ -71,7 +102,3 @@ body {
 #map-modal-body {
   overflow-y: hidden !important;
 }
-
-/* 
-   * Optional: Makes the sample page fill the window. 
-   */
