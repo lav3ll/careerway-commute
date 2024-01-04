@@ -17,6 +17,37 @@ $(document).ready(() => {
   });
 });
 
+// Location Name to Latitude and Longitude
+async function getLatLongFromLocationName(displayName) {
+  // Replace spaces with '+' for URL encoding
+  const noSpaceDisplayName = displayName.replace(/\s/g, "+");
+
+  // Make API call to retrieve geolocation
+  try {
+    const response = await fetch(
+      // Construct URL with encoded location name
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+        noSpaceDisplayName
+      )}`
+    );
+    const data = await response.json();
+
+    // Process response data if available
+    if (data && data.length > 0) {
+      const location = data[0];
+      const latitude = location.lat;
+      const longitude = location.lon;
+      return { latitude, longitude };
+    } else {
+      // Throw error if no data found
+      throw new Error("Geocoding request failed");
+    }
+  } catch (error) {
+    // Log error message if coordinates not found
+    console.log(`Coordinates for ${displayName} not found.`);
+    return null;
+  }
+}
 async function getJobs(city, searchQuery) {
   const queryURL = `http://api.adzuna.com:80/v1/api/jobs/gb/search/1?app_id=${apID}&app_key=${apiKey}&results_per_page=10&what=${searchQuery}&where=${city}&content-type=application/json`;
 
@@ -43,14 +74,28 @@ function showJobs(companies) {
   $("#main").empty();
 
   // Looping through each company in the provided array
-  companies.forEach((company) => {
+  companies.forEach(async (company) => {
     // Logging the current company object to the console
     console.log(company);
 
     // Creating a new div element to hold company information
     const companyEl = $("<div>");
-    companyEl.attr("data-latitude", company.latitude);
-    companyEl.attr("data-longitude", company.longitude);
+    let latitude = company.latitude;
+    let longitude = company.longitude;
+    if (!latitude || !longitude) {
+      const locationData = await getLatLongFromLocationName(
+        company.location.display_name
+      );
+      if (locationData && locationData.latitude && locationData.longitude) {
+        latitude = locationData.latitude;
+        longitude = locationData.longitude;
+      } else {
+        companyEl.attr("data-latlong", "Location not found");
+      }
+    } else {
+      companyEl.attr("data-latitude", latitude);
+      companyEl.attr("data-longitude", longitude);
+    }
 
     // Adding the 'card' and 'col-6' classes to style the company element
     companyEl.addClass("card col-3 mb-4");
