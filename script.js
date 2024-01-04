@@ -49,6 +49,8 @@ function showJobs(companies) {
 
     // Creating a new div element to hold company information
     const companyEl = $("<div>");
+    companyEl.attr("data-latitude", company.latitude);
+    companyEl.attr("data-longitude", company.longitude);
 
     // Adding the 'card' and 'col-6' classes to style the company element
     companyEl.addClass("card col-3 mb-4");
@@ -205,16 +207,29 @@ $("#company-container").on("click", ".save-btn", (e) => {
   // Get the HTML content of the modified element
   const jobToSave = closestCard.html();
 
-  saveToLocalStorage(jobToSave);
+  // Extract latitude and longitude from the current job card
+  const latitude = parseFloat(closestCard.attr("data-latitude"));
+  const longitude = parseFloat(closestCard.attr("data-longitude"));
+
+  saveToLocalStorage(jobToSave, latitude, longitude);
   populateSavedJobs();
 });
 
-function saveToLocalStorage(job) {
+function saveToLocalStorage(job, latitude, longitude) {
   // Retrieve existing saved jobs or initialize an empty array
   let savedJobs = JSON.parse(localStorage.getItem("savedJobs")) || [];
 
+  // Create an object to store job details along with latitude and longitude
+  const jobData = {
+    jobContent: job,
+    coordinates: {
+      latitude: latitude,
+      longitude: longitude,
+    },
+  };
+
   // Add the new job to the existing saved jobs
-  savedJobs.push(job);
+  savedJobs.push(jobData);
 
   // Save the updated list back to local storage
   localStorage.setItem("savedJobs", JSON.stringify(savedJobs));
@@ -562,8 +577,20 @@ function calculateAndDisplayRoute(startLat, startLng, destLat, destLng) {
 }
 /////////////////// Show Map///////////////////////////////
 function showMap(lat, lng) {
+  console.log(typeof lat, typeof lng);
+  console.log("Latitude:", lat, "Longitude:", lng);
   $("#map").show();
-  initMap(lat, lng);
+  if (
+    typeof lat === "number" &&
+    typeof lng === "number" &&
+    !Number.isNaN(lat) &&
+    !Number.isNaN(lng)
+  ) {
+    // Set the map center
+    initMap(lat, lng);
+  } else {
+    console.error("Invalid latitude or longitude:", lat, lng);
+  }
 }
 
 ////////////////////// Get Users Geo Location///////////////////
