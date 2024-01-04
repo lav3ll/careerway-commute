@@ -15,25 +15,23 @@ $(document).ready(() => {
   });
 });
 
-function getJobs(city, searchQuery) {
-  // Updated parameter name here as well
-
+async function getJobs(city, searchQuery) {
   const queryURL = `http://api.adzuna.com:80/v1/api/jobs/gb/search/1?app_id=${apID}&app_key=${apiKey}&results_per_page=10&what=${searchQuery}&where=${city}&content-type=application/json`;
-  fetch(queryURL)
-    .then(function (response) {
-      return response.json();
-    })
-    .then(function (data) {
-      const latitude = data.results[0].latitude;
-      const longitude = data.results[0].longitude;
-      showMap(latitude, longitude);
-      showJobs(data.results);
-      saveRecentSearch(searchQuery, data.results.slice(0, 3)); // Save only the first three results
-      showRecentJobs();
-    })
-    .catch(console.error);
-}
 
+  try {
+    const response = await fetch(queryURL);
+    const data = await response.json();
+
+    const latitude = data.results[0].latitude;
+    const longitude = data.results[0].longitude;
+    showMap(latitude, longitude);
+    showJobs(data.results);
+    saveRecentSearch(searchQuery, data.results.slice(0, 3)); // Save only the first three results
+    showRecentJobs();
+  } catch (error) {
+    console.error(error);
+  }
+}
 // Function that displays job information for given companies
 function showJobs(companies) {
   // Selecting the container element where company information will be displayed
@@ -188,6 +186,24 @@ $(document).ready(() => {
 });
 
 // Delegate the save btn click function through parent element
+$("#company-container").on("click", ".save-btn", (e) => {
+  jobsSavedTimer();
+  // Find the closest parent element with class "card"
+  const closestCard = $(e.currentTarget).closest(".card");
+
+  // Remove the save button from the original element
+  closestCard.find(".save-btn").remove();
+
+  // Get the HTML content of the modified element
+  const jobToSave = closestCard.html();
+
+  // Extract latitude and longitude from the current job card
+  const latitude = parseFloat(closestCard.attr("data-latitude"));
+  const longitude = parseFloat(closestCard.attr("data-longitude"));
+
+  saveToLocalStorage(jobToSave, latitude, longitude);
+  populateSavedJobs();
+});
 
 jobsSavedTimer = function () {
   setTimeout(function () {
@@ -243,7 +259,7 @@ function populateSavedJobs() {
     savedInfoElement.empty();
 
     savedJobs.forEach((job, index) => {
-      const jobDiv = $("<div>").html(job);
+      const jobDiv = $("<div>").html(job.jobContent); // Access job content from the saved job object
       const commuteBtn = jobDiv.find(".commute-btn");
 
       // Create a delete button for each job
@@ -258,11 +274,8 @@ function populateSavedJobs() {
       savedInfoElement.append(jobDiv);
       // Add event listener to the commute button in saved jobs
       commuteBtn.on("click", () => {
-        const job = savedJobs[index];
-        const company = $(job);
-        const latitude = Number($(".latitude", company).text());
-        const longitude = Number($(".longitude", company).text());
-        console.log(longitude, latitude);
+        const latitude = job.coordinates.latitude;
+        const longitude = job.coordinates.longitude;
         showMap(latitude, longitude);
       });
     });
