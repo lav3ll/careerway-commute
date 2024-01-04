@@ -4,6 +4,8 @@ let isLoggedIn = false;
 
 // Event listner for submit button
 $(document).ready(() => {
+  recentSearches = JSON.parse(localStorage.getItem("recentSearches")) || [];
+  showRecentJobs();
   // Call the function to populate saved job information when the page loads
   populateSavedJobs();
   $("#search-submit").click((e) => {
@@ -318,10 +320,11 @@ $(".saved-info").on("click", ".delete-btn", (e) => {
 let recentSearches = [];
 
 function saveRecentSearch(searchQuery, results) {
-  recentSearches.unshift({ searchQuery, results }); // Add recent search to the beginning of the array
+  recentSearches.unshift({ searchQuery, results });
   if (recentSearches.length > 4) {
-    recentSearches.pop(); // Keep only the last four searches
+    recentSearches.pop();
   }
+  localStorage.setItem("recentSearches", JSON.stringify(recentSearches));
 }
 
 function showRecentJobs() {
@@ -342,7 +345,7 @@ function showRecentJobs() {
       );
       const cardFooter = $("<div>");
       const link = $("<a>")
-        .text(`${result.company.display_name} website`)
+        .text(`Full Job Advert`)
         .attr("href", result.redirect_url)
         .addClass("col-3");
       const mapBtn = $("<button>").text("Commute").attr({
@@ -590,17 +593,21 @@ function calculateAndDisplayRoute(startLat, startLng, destLat, destLng) {
 }
 /////////////////// Show Map///////////////////////////////
 function showMap(lat, lng) {
-  console.log(typeof lat, typeof lng);
-  console.log("Latitude:", lat, "Longitude:", lng);
   $("#map").show();
+
   if (
     typeof lat === "number" &&
     typeof lng === "number" &&
     !Number.isNaN(lat) &&
     !Number.isNaN(lng)
   ) {
-    // Set the map center
-    initMap(lat, lng);
+    // Clear any existing map
+    if (map) {
+      map.setZoom(1); // Set a default zoom level
+      map.setCenter(new google.maps.LatLng(lat, lng));
+    } else {
+      initMap(lat, lng);
+    }
   } else {
     console.error("Invalid latitude or longitude:", lat, lng);
   }
