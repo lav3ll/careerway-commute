@@ -30,7 +30,6 @@ function getJobs(city, searchQuery) {
       showJobs(data.results);
       saveRecentSearch(searchQuery, data.results.slice(0, 3)); // Save only the first three results
       showRecentJobs();
-      console.log(data.results, "test");
     })
     .catch(console.error);
 }
@@ -158,20 +157,33 @@ function extractDate(timestamp) {
 }
 
 /////////////////////////////////// SAVE TO LOCAL STORAGE //////////////////////////
+// Retrieve stored user data from localStorage
+function getUserFromStorage() {
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  return storedUser;
+}
 // Function to save job information to local storage
-function saveToLocalStorage(job) {
-  // Retrieve existing saved jobs or initialize an empty array
-  let savedJobs = JSON.parse(localStorage.getItem("savedJobs"));
-  if (!Array.isArray(savedJobs)) {
-    savedJobs = [];
+function saveUserToStorage(user) {
+  localStorage.setItem("user", JSON.stringify(user));
+}
+
+// Event listener for the submit button
+$(document).ready(() => {
+  const user = getUserFromStorage();
+  if (user) {
+    isLoggedIn = true;
+    populateSavedJobs();
+    showRecentJobs();
   }
 
-  // Add the new job to the existing saved jobs
-  savedJobs.push(job);
-
-  // Save the updated list back to local storage
-  localStorage.setItem("savedJobs", JSON.stringify(savedJobs));
-}
+  $("#search-submit").click((e) => {
+    e.preventDefault();
+    const selectedCity = $("#city").val();
+    const searchQueryEl = $("#search-query").val();
+    const selectedLevel = $("#experienceDropdown").val();
+    getJobs(selectedCity, searchQueryEl, selectedLevel);
+  });
+});
 
 // Delegate the save btn click function through parent element
 
@@ -184,7 +196,6 @@ jobsSavedTimer = function () {
 
 $("#company-container").on("click", ".save-btn", (e) => {
   jobsSavedTimer();
-
   // Find the closest parent element with class "card"
   const closestCard = $(e.currentTarget).closest(".card");
 
@@ -198,12 +209,24 @@ $("#company-container").on("click", ".save-btn", (e) => {
   populateSavedJobs();
 });
 
+function saveToLocalStorage(job) {
+  // Retrieve existing saved jobs or initialize an empty array
+  let savedJobs = JSON.parse(localStorage.getItem("savedJobs")) || [];
+
+  // Add the new job to the existing saved jobs
+  savedJobs.push(job);
+
+  // Save the updated list back to local storage
+  localStorage.setItem("savedJobs", JSON.stringify(savedJobs));
+}
+
 // Function to populate saved job information into element with class "saved-info"
 function populateSavedJobs() {
   const savedInfoElement = $(".saved-info");
   const savedJobs = JSON.parse(localStorage.getItem("savedJobs"));
-  if (Array.isArray(savedJobs)) {
+  if (Array.isArray(savedJobs) && savedJobs.length > 0) {
     savedInfoElement.empty();
+
     savedJobs.forEach((job, index) => {
       const jobDiv = $("<div>").html(job);
       const commuteBtn = jobDiv.find(".commute-btn");
@@ -227,6 +250,21 @@ function populateSavedJobs() {
         console.log(longitude, latitude);
         showMap(latitude, longitude);
       });
+    });
+
+    // Event listener for the delete button
+    savedInfoElement.on("click", ".delete-btn", (e) => {
+      const indexToDelete = $(e.currentTarget).data("index");
+
+      let updatedSavedJobs = JSON.parse(localStorage.getItem("savedJobs"));
+
+      if (Array.isArray(updatedSavedJobs)) {
+        updatedSavedJobs.splice(indexToDelete, 1); // Remove the job at the specified index
+
+        // Save the updated job list back to local storage
+        localStorage.setItem("savedJobs", JSON.stringify(updatedSavedJobs));
+        populateSavedJobs(); // Refresh the UI after deleting the job
+      }
     });
   } else {
     savedInfoElement.text("No saved jobs found");
@@ -309,18 +347,22 @@ function showRecentJobs() {
 /////////////////////////////////// SIGN IN //////////////////////////
 // Function to handle the sign-in process
 function signIn() {
-  // Retrieving the entered email and password values from the input fields
-  const emailEl = $("#signin-email").val();
+  const email = $("#signin-email").val();
   const password = $("#signin-password").val();
 
-  // Checking if provided email and password match any set of credentials
-  const found = credentials.some(
-    (cred) => cred.email === emailEl && cred.password === password
+  const foundUser = credentials.find(
+    (user) => user.email === email && user.password === password
   );
 
-  // Checking if the credentials are found and logging the result
-  if (found) {
-    console.log("Login successful");
+  if (foundUser) {
+    const loggedInUser = {
+      email: foundUser.email,
+      password: foundUser.password,
+    };
+    saveUserToStorage(loggedInUser);
+    isLoggedIn = true;
+    populateSavedJobs();
+    showRecentJobs();
   } else {
     console.log("Account does not exist");
   }
@@ -331,49 +373,45 @@ const signInEl = $("#signin");
 signInEl.click(signIn);
 
 // Array containing sets of email and password credentials
-const credentials = [
-  {
-    email: "test1@gmail.com",
-    password: "password123",
-  },
-  {
-    email: "tes2@google.com",
-    password: "securePass",
-  },
-];
+// const credentials = [
+//   {
+//     email: "test1@gmail.com",
+//     password: "password123",
+//   },
+//   {
+//     email: "tes2@google.com",
+//     password: "securePass",
+//   },
+// ];
+
+let credentials = JSON.parse(localStorage.getItem("credentials")) || [];
 
 /////////////////////////////////// REGISTER //////////////////////////
 
+// Update signup functionality to save credentials to localStorage
 function signUp() {
-  // Function to handle the register process
-  function signup() {
-    // Retrieving the entered email and password values from the input fields
-    const emailEl = $("#register-email").val();
-    const password1 = $("#password1").val();
-    const password2 = $("#password2").val();
+  const email = $("#register-email").val();
+  const password1 = $("#password1").val();
+  const password2 = $("#password2").val();
 
-    // Checking if the passwords match
-    const passwordsMatch = password1 === password2;
+  const passwordsMatch = password1 === password2;
+  const emailExists = credentials.some((cred) => cred.email === email);
 
-    // Checking if the provided email is unique (not already in credentials)
-    const emailExists = credentials.some((cred) => cred.email === emailEl);
-
-    // Checking if the email is unique and passwords match
-    if (!emailExists && passwordsMatch) {
-      console.log("You have now signed up to CareerWay Commut");
-      console.log(credentials);
-      // Add the new user to the credentials array
-      credentials.push({ email: emailEl, password: password1 });
-    } else if (!passwordsMatch) {
-      console.log("passwords do not match!");
-    } else {
-      console.log("Please enter a valid email address and matching passwords");
-    }
+  if (!emailExists && passwordsMatch) {
+    const newUser = { email: email, password: password1 };
+    credentials.push(newUser);
+    saveCredentialsToStorage(credentials);
+    console.log("You have now signed up to CareerWay Commut");
+  } else if (!passwordsMatch) {
+    console.log("Passwords do not match!");
+  } else {
+    console.log("Please enter a valid email address and matching passwords");
   }
+}
 
-  // Binding the signup function to the click event of the sign-up button
-  const signUpEl = $("#signup");
-  signUpEl.click(signup);
+// Save credentials to localStorage
+function saveCredentialsToStorage(credentials) {
+  localStorage.setItem("credentials", JSON.stringify(credentials));
 }
 
 // Call signUp function
