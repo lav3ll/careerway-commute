@@ -10,10 +10,61 @@ $(document).ready(() => {
   populateSavedJobs();
   $("#search-submit").click((e) => {
     e.preventDefault();
+    $("#company-container").empty();
     const selectedCity = $("#city").val();
     const searchQueryEl = $("#search-query").val();
-    const selectedLevel = $("#experienceDropdown").val();
-    getJobs(selectedCity, searchQueryEl, selectedLevel);
+
+    if (!selectedCity || !searchQueryEl) {
+      // Create or show the modal when fields are empty
+      const modal = $("#myModal");
+      if (!modal.length) {
+        const newModal = $("<div>").addClass("modal fade").attr({
+          id: "myModal",
+          tabindex: "-1",
+          "aria-labelledby": "modalLabel",
+          "aria-hidden": "true",
+        });
+
+        const modalDialog = $("<div>").addClass("modal-dialog");
+        const modalContent = $("<div>").addClass("modal-content");
+        const modalHeader = $("<div>")
+          .addClass("modal-header")
+          .append(
+            $("<h5>").addClass("modal-title").text("Missing Fields"),
+            $("<button>").addClass("btn-close").attr({
+              type: "button",
+              "data-bs-dismiss": "modal",
+              "aria-label": "Close",
+            })
+          );
+        const modalBody = $("<div>")
+          .addClass("modal-body")
+          .text("Please fill in all fields before submitting.");
+        const modalFooter = $("<div>")
+          .addClass("modal-footer")
+          .append(
+            $("<button>")
+              .addClass("btn btn-secondary")
+              .attr({
+                type: "button",
+                "data-bs-dismiss": "modal",
+              })
+              .text("Close")
+          );
+
+        modalContent.append(modalHeader, modalBody, modalFooter);
+        modalDialog.append(modalContent);
+        newModal.append(modalDialog);
+        $("body").append(newModal);
+      }
+
+      $("#myModal").modal("show");
+    } else {
+      // All fields are filled, proceed with getting jobs
+      const selectedCity = $("#city").val();
+      const searchQueryEl = $("#search-query").val();
+      getJobs(selectedCity, searchQueryEl);
+    }
   });
 });
 
@@ -71,7 +122,7 @@ function showJobs(companies) {
   const companyContainerEl = $("#company-container");
 
   // Clearing the content of the main element where the job information will be shown
-  $("#main").empty();
+  // $("#main").empty();
 
   // Looping through each company in the provided array
   companies.forEach(async (company) => {
@@ -98,7 +149,7 @@ function showJobs(companies) {
     }
 
     // Adding the 'card' and 'col-6' classes to style the company element
-    companyEl.addClass("card col-3 mb-4");
+    companyEl.addClass("card col-lg-4 col-md-6 col-12 mb-4");
 
     // Creating elements to display company name, job position, and publication date
     const companyName = $("<h5>").text(`${company.company.display_name}`);
@@ -124,8 +175,15 @@ function showJobs(companies) {
             -3
           )} - ${salaryMaxFormatted.slice(0, -3)}`
     );
+    const maxLength = 300;
+    let truncatedDescription = company.description;
 
-    const description = $("<p>").text(company.description);
+    if (truncatedDescription.length > maxLength) {
+      truncatedDescription =
+        truncatedDescription.substring(0, maxLength) + "...";
+    }
+
+    const description = $("<p>").text(truncatedDescription);
 
     const cardFooter = $("<div>");
     cardFooter.addClass("mx-auto");
@@ -147,7 +205,7 @@ function showJobs(companies) {
     });
     const saveBtn = $("<button>").text("Save").attr({
       type: "button",
-      class: "save-btn btn btn-primary ms-1",
+      class: "save-btn btn btn-primary ms-1 bg-success",
       id: "save-btn",
       "data-bs-toggle": "modal",
       "data-bs-target": "#save-modal",
@@ -222,14 +280,6 @@ $(document).ready(() => {
     populateSavedJobs();
     showRecentJobs();
   }
-
-  $("#search-submit").click((e) => {
-    e.preventDefault();
-    const selectedCity = $("#city").val();
-    const searchQueryEl = $("#search-query").val();
-    const selectedLevel = $("#experienceDropdown").val();
-    getJobs(selectedCity, searchQueryEl, selectedLevel);
-  });
 });
 
 // Delegate the save btn click function through parent element
@@ -301,6 +351,7 @@ function saveToLocalStorage(job, latitude, longitude) {
 // Function to populate saved job information into element with class "saved-info"
 function populateSavedJobs() {
   const savedInfoElement = $(".saved-info");
+  savedInfoElement.addClass("card pb-2 px-2");
   const savedJobs = JSON.parse(localStorage.getItem("savedJobs"));
   if (Array.isArray(savedJobs) && savedJobs.length > 0) {
     savedInfoElement.empty();
@@ -387,6 +438,7 @@ function saveRecentSearch(searchQuery, results) {
   localStorage.setItem("recentSearches", JSON.stringify(recentSearches));
 }
 
+// Function to show recent search information
 function showRecentJobs() {
   const recentInfoEl = $(".recent-info");
   recentInfoEl.empty(); // Clear recent info before populating new data
@@ -397,17 +449,17 @@ function showRecentJobs() {
     const searchResults = $("<div>").addClass("search-results");
 
     search.results.forEach((result) => {
-      const resultEl = $("<div>").addClass("card");
+      const resultEl = $("<div>").addClass("card px-2 pb-2");
       const companyName = $("<h5>").text(result.company.display_name);
       const position = $("<p>").text(result.title);
       const publishDate = $("<p>").text(
         `Published: ${extractDate(result.created)}`
       );
-      const cardFooter = $("<div>");
+      const cardFooter = $("<div>").addClass("ms-auto");
       const link = $("<a>")
         .text(`Full Job Advert`)
         .attr("href", result.redirect_url)
-        .addClass("col-3");
+        .addClass("col-3 mx-auto");
       const mapBtn = $("<button>").text("Commute").attr({
         type: "button",
         class: "commute-btn btn btn-primary ms-5",
@@ -417,7 +469,7 @@ function showRecentJobs() {
       });
       const saveBtn = $("<button>").text("Save").attr({
         type: "button",
-        class: "save-btn btn btn-primary ms-1",
+        class: "save-btn btn btn-primary ms-1 bg-success",
         id: "save-btn",
         "data-bs-toggle": "modal",
         "data-bs-target": "#save-modal",
