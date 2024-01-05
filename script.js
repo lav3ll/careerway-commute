@@ -24,44 +24,10 @@ $(document).ready(() => {
       // Create or show the modal when fields are empty
       const modal = $("#myModal");
       if (!modal.length) {
-        const newModal = $("<div>").addClass("modal fade").attr({
-          id: "myModal",
-          tabindex: "-1",
-          "aria-labelledby": "modalLabel",
-          "aria-hidden": "true",
-        });
-
-        const modalDialog = $("<div>").addClass("modal-dialog");
-        const modalContent = $("<div>").addClass("modal-content");
-        const modalHeader = $("<div>")
-          .addClass("modal-header")
-          .append(
-            $("<h5>").addClass("modal-title").text("Missing Fields"),
-            $("<button>").addClass("btn-close").attr({
-              type: "button",
-              "data-bs-dismiss": "modal",
-              "aria-label": "Close",
-            })
-          );
-        const modalBody = $("<div>")
-          .addClass("modal-body")
-          .text("Please fill in all fields before submitting.");
-        const modalFooter = $("<div>")
-          .addClass("modal-footer")
-          .append(
-            $("<button>")
-              .addClass("btn btn-secondary")
-              .attr({
-                type: "button",
-                "data-bs-dismiss": "modal",
-              })
-              .text("Close")
-          );
-
-        modalContent.append(modalHeader, modalBody, modalFooter);
-        modalDialog.append(modalContent);
-        newModal.append(modalDialog);
-        $("body").append(newModal);
+        createModal(
+          "Missing Fields",
+          "Please fill in all fields before submitting."
+        );
       }
 
       $("#myModal").modal("show");
@@ -71,6 +37,47 @@ $(document).ready(() => {
     }
   });
 });
+
+function createModal(title, text) {
+  const newModal = $("<div>").addClass("modal fade").attr({
+    id: "myModal",
+    tabindex: "-1",
+    "aria-labelledby": "modalLabel",
+    "aria-hidden": "true",
+  });
+
+  const modalDialog = $("<div>").addClass("modal-dialog");
+  const modalContent = $("<div>").addClass("modal-content");
+  const modalHeader = $("<div>")
+    .addClass("modal-header")
+    .append(
+      $("<h5>").addClass("modal-title").text(title),
+      $("<button>").addClass("btn-close").attr({
+        type: "button",
+        "data-bs-dismiss": "modal",
+        "aria-label": "Close",
+      })
+    );
+  const modalBody = $("<div>").addClass("modal-body").text(text);
+  const modalFooter = $("<div>")
+    .addClass("modal-footer")
+    .append(
+      $("<button>")
+        .addClass("btn btn-secondary")
+        .attr({
+          type: "button",
+          "data-bs-dismiss": "modal",
+        })
+        .text("Close")
+    );
+
+  modalContent.append(modalHeader, modalBody, modalFooter);
+  modalDialog.append(modalContent);
+  newModal.append(modalDialog);
+  $("body").append(newModal);
+
+  autoCloseModal("#myModal");
+}
 
 // Location Name to Latitude and Longitude
 async function getLatLongFromLocationName(displayName) {
@@ -109,6 +116,11 @@ async function getJobs(city, searchQuery) {
   try {
     const response = await fetch(queryURL);
     const data = await response.json();
+
+    if (!data.results || data.results.length === 0) {
+      console.log("No results found for the search query.");
+      return; // Exit function if there are no results
+    }
 
     const latitude = data.results[0].latitude;
     const longitude = data.results[0].longitude;
@@ -278,7 +290,7 @@ function saveUserToStorage(user) {
 
 // Delegate the save btn click function through parent element
 $("#company-container").on("click", ".save-btn", (e) => {
-  jobsSavedTimer();
+  autoCloseModal("#save-modal");
   // Find the closest parent element with class "card"
   const closestCard = $(e.currentTarget).closest(".card");
 
@@ -296,10 +308,10 @@ $("#company-container").on("click", ".save-btn", (e) => {
   populateSavedJobs();
 });
 
-jobsSavedTimer = function () {
+autoCloseModal = function (classOrId) {
   setTimeout(function () {
     // Close the save modal after 3 seconds
-    $("#save-modal").modal("hide");
+    $(`${classOrId}`).modal("hide");
   }, 800);
 };
 
@@ -451,7 +463,9 @@ function showRecentJobs() {
       });
 
       saveBtn.addClass("save-btn btn btn-primary");
-      saveBtn.on("click", jobsSavedTimer);
+      saveBtn.on("click", () => {
+        autoCloseModal("#save-modal");
+      });
       cardFooter.append(link, mapBtn, saveBtn);
 
       resultEl.append(companyName, position, publishDate, cardFooter);
@@ -462,6 +476,7 @@ function showRecentJobs() {
     recentInfoEl.append(searchDiv);
   });
 }
+
 /////////////////////////////////// SIGN IN //////////////////////////
 // Function to handle the sign-in process
 function signIn() {
