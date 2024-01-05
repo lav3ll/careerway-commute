@@ -100,7 +100,7 @@ async function getLatLongFromLocationName(displayName) {
   }
 }
 async function getJobs(city, searchQuery) {
-  const queryURL = `http://api.adzuna.com:80/v1/api/jobs/gb/search/1?app_id=${apID}&app_key=${apiKey}&results_per_page=10&what=${searchQuery}&where=${city}&content-type=application/json`;
+  const queryURL = `https://api.adzuna.com/v1/api/jobs/gb/search/1?app_id=${apID}&app_key=${apiKey}&results_per_page=10&what=${searchQuery}&where=${city}&content-type=application/json`;
 
   try {
     const response = await fetch(queryURL);

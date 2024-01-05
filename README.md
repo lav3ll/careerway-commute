@@ -14,7 +14,7 @@ No installation needed
 
 ## Usage
 
-![Screenhot of the front page of careerway commute](./images/screenshot1.png)
+![Screenhot of the front page of careerway commute](./images/screenshot2.png)
 
 **Key Features:**
 
@@ -22,7 +22,7 @@ No installation needed
 - Saved Jobs: Save and organize preferred job listings for later reference.
 - Recent Searches: Easily track and revisit recent job searches.
 - Map Integration: Visualize job locations and plan commutes using integrated maps.
-  ![Screenhot of the front page of careerway commute](./images/screenshot2.png)
+  ![Screenhot of the front page of careerway commute](./images/screenshot1.png)
 - User Account: Register and log in to access personalized job-saving features.
 - Responsive Design: Enjoy seamless browsing on various devices for an optimized experience.
 
