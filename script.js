@@ -4,6 +4,12 @@ let isLoggedIn = false;
 
 // Event listner for submit button
 $(document).ready(() => {
+  // Event listener for the submit button
+  const user = getUserFromStorage();
+  if (user) {
+    isLoggedIn = true;
+    populateSavedJobs();
+  }
   recentSearches = JSON.parse(localStorage.getItem("recentSearches")) || [];
   showRecentJobs();
   // Call the function to populate saved job information when the page loads
@@ -61,8 +67,6 @@ $(document).ready(() => {
       $("#myModal").modal("show");
     } else {
       // All fields are filled, proceed with getting jobs
-      const selectedCity = $("#city").val();
-      const searchQueryEl = $("#search-query").val();
       getJobs(selectedCity, searchQueryEl);
     }
   });
@@ -272,16 +276,6 @@ function saveUserToStorage(user) {
   localStorage.setItem("user", JSON.stringify(user));
 }
 
-// Event listener for the submit button
-$(document).ready(() => {
-  const user = getUserFromStorage();
-  if (user) {
-    isLoggedIn = true;
-    populateSavedJobs();
-    showRecentJobs();
-  }
-});
-
 // Delegate the save btn click function through parent element
 $("#company-container").on("click", ".save-btn", (e) => {
   jobsSavedTimer();
@@ -308,25 +302,6 @@ jobsSavedTimer = function () {
     $("#save-modal").modal("hide");
   }, 800);
 };
-
-$("#company-container").on("click", ".save-btn", (e) => {
-  jobsSavedTimer();
-  // Find the closest parent element with class "card"
-  const closestCard = $(e.currentTarget).closest(".card");
-
-  // Remove the save button from the original element
-  closestCard.find(".save-btn").remove();
-
-  // Get the HTML content of the modified element
-  const jobToSave = closestCard.html();
-
-  // Extract latitude and longitude from the current job card
-  const latitude = parseFloat(closestCard.attr("data-latitude"));
-  const longitude = parseFloat(closestCard.attr("data-longitude"));
-
-  saveToLocalStorage(jobToSave, latitude, longitude);
-  populateSavedJobs();
-});
 
 function saveToLocalStorage(job, latitude, longitude) {
   // Retrieve existing saved jobs or initialize an empty array
@@ -715,7 +690,9 @@ function showMap(lat, lng) {
       initMap(lat, lng);
     }
   } else {
-    console.error("Invalid latitude or longitude:", lat, lng);
+    $("#map").text(
+      `Invalid latitude or longitude: ${lat}, ${lng}, Could not load map`
+    );
   }
 }
 
